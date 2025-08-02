@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clarity - Sortez de l'impasse</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .question-container {
+            margin-bottom: 25px;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #444;
+            font-weight: 500;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 8px;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .matrix-cell {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .matrix-cell.inherited-fixed {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+        }
+
+        .matrix-cell.inherited-changeable {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+        }
+
+        .matrix-cell.created-fixed {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+        }
+
+        .matrix-cell.created-changeable {
+            background: linear-gradient(135deg, #00b894, #00a085);
+        }
+
+        .action-item {
+            background: #f8f9fa;
+            border-left: 4px solid #00b894;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .session-history {
+            margin-top: 20px;
+        }
+
+        .session-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .matrix {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Clarity</h1>
+            <p>Sortez de l'impasse - Retrouvez votre pouvoir d'action</p>
+        </div>
+
+        <!-- Page d'accueil -->
+        <div id="landing-page" class="card">
+            <h2 style="margin-bottom: 20px; color: #444; text-align: center;">Vous sentez-vous coincé(e) dans une spirale mentale ?</h2>
+            <p style="margin-bottom: 20px; text-align: center; color: #666; line-height: 1.6;">
+                Distinguez enfin ce que vous avez hérité de ce que vous pouvez façonner. 
+                Arrêtez de vous battre contre des moulins à vent et reprenez le pouvoir sur votre vie.
+            </p>
+            
+            <div id="connection-test" class="status" style="display: none;"></div>
+            
+            <button class="btn" onclick="testConnection()">Tester la connexion</button>
+            <button class="btn btn-secondary" onclick="showAuthForms()">Commencer maintenant</button>
+        </div>
+
+        <!-- Authentification -->
+        <div id="auth-section" class="card hidden">
+            <div id="login-form">
+                <h3>Connexion</h3>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="login-email" placeholder="votre@email.com">
+                </div>
+                <div class="input-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="login-password" placeholder="••••••••">
+                </div>
+                <button class="btn" onclick="login()">Se connecter</button>
+                <button class="btn btn-secondary" onclick="showRegisterForm()">Créer un compte</button>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <h3>Créer un compte</h3>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="register-email" placeholder="votre@email.com">
+                </div>
+                <div class="input-group">
+                    <label>Mot de passe</label>
+                    <input type="password" id="register-password" placeholder="••••••••">
+                </div>
+                <button class="btn" onclick="register()">Créer le compte</button>
+                <button class="btn btn-secondary" onclick="showLoginForm()">Déjà un compte ?</button>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="card hidden">
+            <h3>Votre espace personnel</h3>
+            <p id="welcome-message" style="margin-bottom: 20px; color: #666;"></p>
+            
+            <button class="btn" onclick="startNewSession()">Nouvelle session de coaching</button>
+            <button class="btn btn-secondary" onclick="showHistory()">Mes sessions passées</button>
+            <button class="btn" style="background: #6c757d;" onclick="logout()">Déconnexion</button>
+            
+            <div id="session-history" class="session-history hidden"></div>
+        </div>
+
+        <!-- Session de coaching -->
+        <div id="coaching-session" class="card hidden">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+            
+            <div id="initial-problem">
+                <h3>Décrivez votre situation</h3>
+                <div class="input-group">
+                    <label>Quelle situation vous préoccupe en ce moment ?</label>
+                    <textarea id="problem-description" rows="4" placeholder="Décrivez librement ce qui vous tracasse..."></textarea>
+                </div>
+                <button class="btn" onclick="submitProblem()">Continuer</button>
+            </div>
+
+            <div id="questions-section" class="hidden">
+                <div id="current-question" class="question-container"></div>
+                <div class="input-group">
+                    <input type="text" id="question-answer" placeholder="Votre réponse...">
+                </div>
+                <button class="btn" onclick="submitAnswer()">Suivant</button>
+            </div>
+
+            <div id="loading-analysis" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Analyse de votre situation en cours...</p>
+            </div>
+        </div>
+
+        <!-- Résultats -->
+        <div id="results-section" class="card hidden">
+            <h3>Votre analyse personnalisée</h3>
+            
+            <div class="matrix">
+                <div class="matrix-cell inherited-fixed">
+                    <h4>Hérité + Fixe</h4>
+                    <p>Accepter</p>
+                    <div id="matrix-inherited-fixed"></div>
+                </div>
+                <div class="matrix-cell inherited-changeable">
+                    <h4>Hérité + Transformable</h4>
+                    <p>Réapproprier</p>
+                    <div id="matrix-inherited-changeable"></div>
+                </div>
+                <div class="matrix-cell created-fixed">
+                    <h4>Créé + Passé</h4>
+                    <p>Assumer</p>
+                    <div id="matrix-created-fixed"></div>
+                </div>
+                <div class="matrix-cell created-changeable">
+                    <h4>Créé + Actionnable</h4>
+                    <p style="font-weight: bold;">VOTRE POUVOIR</p>
+                    <div id="matrix-created-changeable"></div>
+                </div>
+            </div>
+
+            <h4>Votre plan d'action (7 jours)</h4>
+            <div id="action-plan"></div>
+            
+            <button class="btn" onclick="goToDashboard()">Retour au dashboard</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration API
+        const API_BASE_URL = 'https://clarity-backend-production-efc1.up.railway.app';
+        
+        // Variables globales
+        let currentUser = null;
+        let currentSessionId = null;
+        let currentQuestionIndex = 0;
+        let questions = [];
+        let answers = [];
+
+        // Stockage sécurisé du token
+        function setToken(token) {
+            sessionStorage.setItem('clarity_token', token);
+        }
+
+        function getToken() {
+            return sessionStorage.getItem('clarity_token');
+        }
+
+        function clearToken() {
+            sessionStorage.removeItem('clarity_token');
+        }
+
+        // Test de connexion API
+        async function testConnection() {
+            const statusDiv = document.getElementById('connection-test');
+            statusDiv.style.display = 'block';
+            statusDiv.innerHTML = 'Test en cours...';
+            statusDiv.className = 'status';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = '✅ Backend fonctionne parfaitement !';
+                    statusDiv.className = 'status success';
+                } else {
+                    throw new Error('Backend inaccessible');
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '❌ Erreur de connexion au backend';
+                statusDiv.className = 'status error';
+                console.error('Erreur:', error);
+            }
+        }
+
+        // Navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.card').forEach(card => card.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+        }
+
+        function showAuthForms() {
+            showPage('auth-section');
+        }
+
+        function showLoginForm() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+        }
+
+        function showRegisterForm() {
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+        }
+
+        // Authentification
+        async function register() {
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            if (!email || !password) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    setToken(data.access_token);
+                    currentUser = data.user;
+                    showDashboard();
+                } else {
+                    alert(data.detail || 'Erreur lors de l\'inscription');
+                }
+            } catch (error) {
+                alert('Erreur de connexion');
+                console.error('Erreur:', error);
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('username', email);
+                formData.append('password', password);
+
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    setToken(data.access_token);
+                    currentUser = data.user;
+                    showDashboard();
+                } else {
+                    alert(data.detail || 'Erreur de connexion');
+                }
+            } catch (error) {
+                alert('Erreur de connexion');
+                console.error('Erreur:', error);
+            }
+        }
+
+        function logout() {
+            clearToken();
+            currentUser = null;
+            showPage('landing-page');
+        }
+
+        // Dashboard
+        function showDashboard() {
+            document.getElementById('welcome-message').textContent = 
+                `Bienvenue ${currentUser?.email || 'utilisateur'} !`;
+            showPage('dashboard');
+        }
+
+        async function showHistory() {
+            const historyDiv = document.getElementById('session-history');
+            historyDiv.classList.remove('hidden');
+            historyDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Chargement...</p></div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/sessions/history`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (response.ok) {
+                    const sessions = await response.json();
+                    displayHistory(sessions);
+                } else {
+                    historyDiv.innerHTML = '<p>Erreur lors du chargement de l\'historique</p>';
+                }
+            } catch (error) {
+                historyDiv.innerHTML = '<p>Erreur de connexion</p>';
+            }
+        }
+
+        function displayHistory(sessions) {
+            const historyDiv = document.getElementById('session-history');
+            
+            if (!sessions || sessions.length === 0) {
+                historyDiv.innerHTML = '<p>Aucune session précédente</p>';
+                return;
+            }
+
+            let html = '<h4>Vos sessions précédentes</h4>';
+            sessions.forEach(session => {
+                const date = new Date(session.created_at).toLocaleDateString('fr-FR');
+                html += `
+                    <div class="session-item">
+                        <strong>${date}</strong><br>
+                        <em>${session.problem_description}</em><br>
+                        <span style="color: #666; font-size: 0.9em;">
+                            ${session.status === 'completed' ? 'Session terminée' : 'Session en cours'}
+                        </span>
+                    </div>
+                `;
+            });
+            
+            historyDiv.innerHTML = html;
+        }
+
+        // Session de coaching
+        function startNewSession() {
+            showPage('coaching-session');
+            resetSession();
+        }
+
+        function resetSession() {
+            currentSessionId = null;
+            currentQuestionIndex = 0;
+            questions = [];
+            answers = [];
+            
+            document.getElementById('initial-problem').classList.remove('hidden');
+            document.getElementById('questions-section').classList.add('hidden');
+            document.getElementById('loading-analysis').classList.add('hidden');
+            document.getElementById('problem-description').value = '';
+            updateProgress(0);
+        }
+
+        async function submitProblem() {
+            const problemDescription = document.getElementById('problem-description').value.trim();
+            
+            if (!problemDescription) {
+                alert('Veuillez décrire votre situation');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/sessions/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({ problem_description: problemDescription })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentSessionId = data.session_id;
+                    questions = data.questions;
+                    
+                    document.getElementById('initial-problem').classList.add('hidden');
+                    startQuestions();
+                } else {
+                    alert('Erreur lors du démarrage de la session');
+                }
+            } catch (error) {
+                alert('Erreur de connexion');
+                console.error('Erreur:', error);
+            }
+        }
+
+        function startQuestions() {
+            currentQuestionIndex = 0;
+            answers = [];
+            showCurrentQuestion();
+            document.getElementById('questions-section').classList.remove('hidden');
+        }
+
+        function showCurrentQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                completeSession();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            document.getElementById('current-question').innerHTML = 
+                `<div class="question-text">${question.text}</div>`;
+            document.getElementById('question-answer').value = '';
+            
+            updateProgress((currentQuestionIndex / questions.length) * 100);
+        }
+
+        async function submitAnswer() {
+            const answer = document.getElementById('question-answer').value.trim();
+            
+            if (!answer) {
+                alert('Veuillez répondre à la question');
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            answers.push({
+                question_key: question.key,
+                answer: answer
+            });
+
+            try {
+                await fetch(`${API_BASE_URL}/sessions/respond`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        question_key: question.key,
+                        answer: answer
+                    })
+                });
+
+                currentQuestionIndex++;
+                showCurrentQuestion();
+            } catch (error) {
+                alert('Erreur lors de l\'envoi de la réponse');
+                console.error('Erreur:', error);
+            }
+        }
+
+        async function completeSession() {
+            document.getElementById('questions-section').classList.add('hidden');
+            document.getElementById('loading-analysis').classList.remove('hidden');
+            updateProgress(100);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/sessions/complete/${currentSessionId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+
+                if (response.ok) {
+                    const results = await response.json();
+                    displayResults(results);
+                } else {
+                    alert('Erreur lors de l\'analyse');
+                }
+            } catch (error) {
+                alert('Erreur de connexion');
+                console.error('Erreur:', error);
+            }
+        }
+
+        function displayResults(results) {
+            document.getElementById('loading-analysis').classList.add('hidden');
+            
+            // Afficher la matrice
+            Object.keys(results.analysis).forEach(category => {
+                const items = results.analysis[category];
+                const element = document.getElementById(`matrix-${category.replace('_', '-')}`);
+                if (element && items.length > 0) {
+                    element.innerHTML = items.map(item => `<small>• ${item}</small>`).join('<br>');
+                }
+            });
+
+            // Afficher le plan d'action
+            const actionPlanDiv = document.getElementById('action-plan');
+            if (results.action_plan && results.action_plan.length > 0) {
+                actionPlanDiv.innerHTML = results.action_plan
+                    .map(action => `<div class="action-item">${action}</div>`)
+                    .join('');
+            } else {
+                actionPlanDiv.innerHTML = '<p>Aucune action spécifique générée pour cette session.</p>';
+            }
+
+            showPage('results-section');
+        }
+
+        function updateProgress(percentage) {
+            document.getElementById('progress-fill').style.width = `${percentage}%`;
+        }
+
+        function goToDashboard() {
+            showDashboard();
+        }
+
+        // Vérification de l'authentification au chargement
+        window.addEventListener('load', () => {
+            const token = getToken();
+            if (token) {
+                // Vérifier si le token est valide
+                fetch(`${API_BASE_URL}/auth/me`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Token invalide');
+                    }
+                })
+                .then(user => {
+                    currentUser = user;
+                    showDashboard();
+                })
+                .catch(() => {
+                    clearToken();
+                    showPage('landing-page');
+                });
+            } else {
+                showPage('landing-page');
+            }
+        });
+    </script>
+</body>
+</html>
